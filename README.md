@@ -42,40 +42,75 @@ Control how many surrounding lines are sent with a code selection (default: 50) 
 
 ## Requirements
 
-**[Ollama](https://ollama.ai)** must be installed and running on your machine.
+**[Ollama](https://ollama.ai)** must be installed and running — either natively or via Docker.
 
-### Install Ollama
+### Option A — Native install
 
 - **Windows / macOS**: Download from [ollama.ai](https://ollama.ai)
 - **Linux**: `curl -fsSL https://ollama.ai/install.sh | sh`
 
-### Pull a Coding Model
-
-Open a terminal and pull at least one model. Recommended options:
-
-```bash
-# Fast, purpose-built coding model (4B)
-ollama pull codellama
-
-# Excellent code quality, good speed (6.7B)
-ollama pull deepseek-coder:6.7b
-
-# State-of-the-art coding model (7B)
-ollama pull qwen2.5-coder:7b
-
-# Great general-purpose model (3.2B)
-ollama pull llama3.2
-```
-
-The model name you pull is what you enter in the extension's **Model** setting or pick from the dropdown.
-
-### Start Ollama
-
-Ollama usually starts automatically as a background service after installation. If the extension shows a connection error, start it manually:
+Ollama starts automatically as a background service. If you ever need to start it manually:
 
 ```bash
 ollama serve
 ```
+
+### Option B — Docker (recommended for isolation)
+
+```bash
+# CPU only
+docker run -d \
+  --name ollama \
+  -p 11434:11434 \
+  -v ollama:/root/.ollama \
+  ollama/ollama
+
+# With NVIDIA GPU
+docker run -d \
+  --name ollama \
+  --gpus all \
+  -p 11434:11434 \
+  -v ollama:/root/.ollama \
+  ollama/ollama
+```
+
+The `-p 11434:11434` flag maps the container port to `localhost:11434`, so the extension's default URL works without any changes.
+
+To pull models into the Docker container:
+
+```bash
+docker exec -it ollama ollama pull codellama
+```
+
+To check Ollama is reachable from your host machine:
+
+```bash
+curl http://localhost:11434/api/tags
+```
+
+If you use a different host port (e.g. `-p 12345:11434`), update the `localCodingAgent.ollamaUrl` setting to `http://localhost:12345`.
+
+### Pull a Coding Model
+
+Pull at least one model before using the extension. Recommended options:
+
+```bash
+# If using native Ollama
+ollama pull codellama
+
+# If using Docker
+docker exec -it ollama ollama pull codellama
+```
+
+| Model | Size | Best for |
+|-------|------|----------|
+| `codellama` | 4B | Fast, purpose-built coding, low RAM |
+| `deepseek-coder:6.7b` | 6.7B | Excellent code quality, good speed |
+| `qwen2.5-coder:7b` | 7B | State-of-the-art coding tasks |
+| `llama3.2` | 3.2B | Great general model, very fast |
+| `llama3.1:8b` | 8B | Strong reasoning + code |
+
+The model name you pull is what you enter in the extension's **Model** setting or pick from the dropdown.
 
 ---
 
@@ -179,7 +214,21 @@ src/
 ## Troubleshooting
 
 **"Cannot connect to Ollama"**
-Run `ollama serve` in a terminal and make sure it's listening on the configured URL (default `http://localhost:11434`).
+Run `ollama serve` in a terminal (native) or `docker start ollama` (Docker) and make sure it's listening on the configured URL (default `http://localhost:11434`).
+
+**Docker: connection refused even though container is running**
+Check the container is actually exposing the port to the host:
+```bash
+docker ps --filter name=ollama
+# "PORTS" column should show:  0.0.0.0:11434->11434/tcp
+```
+If the port is missing, recreate the container with `-p 11434:11434`.
+
+**Docker: model pull not working**
+Pull models into the running container, not from the host CLI:
+```bash
+docker exec -it ollama ollama pull codellama
+```
 
 **"Model not found" or empty model list**
 Pull a model first: `ollama pull codellama`. The dropdown auto-populates with all pulled models.
