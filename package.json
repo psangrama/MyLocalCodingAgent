@@ -1,0 +1,139 @@
+{
+  "name": "local-coding-agent",
+  "displayName": "Local Coding Agent",
+  "description": "Privacy-first AI coding assistant that runs entirely on your machine. Chat sidebar, streaming responses, code actions (Explain, Fix, Refactor, Docs, Tests), and one-click Insert — powered by any Ollama model with no cloud dependency.",
+  "version": "0.1.0",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["AI", "Programming Languages", "Other"],
+  "keywords": ["ollama", "llm", "ai", "coding", "assistant", "local"],
+  "repository": {"type": "git", "url": "https://github.com/local/local-coding-agent"},
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "localCodingAgent",
+          "title": "Local Coding Agent",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "localCodingAgent": [
+        {
+          "type": "webview",
+          "id": "localCodingAgent.chatView",
+          "name": "Chat",
+          "contextualTitle": "Local Coding Agent"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "localCodingAgent.explainCode",
+        "title": "Local Agent: Explain Code"
+      },
+      {
+        "command": "localCodingAgent.fixCode",
+        "title": "Local Agent: Fix Code"
+      },
+      {
+        "command": "localCodingAgent.refactorCode",
+        "title": "Local Agent: Refactor Code"
+      },
+      {
+        "command": "localCodingAgent.generateDocs",
+        "title": "Local Agent: Generate Docs"
+      },
+      {
+        "command": "localCodingAgent.generateTests",
+        "title": "Local Agent: Generate Tests"
+      },
+      {
+        "command": "localCodingAgent.newChat",
+        "title": "Local Agent: New Chat",
+        "icon": "$(add)"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "localCodingAgent.explainCode",
+          "when": "editorHasSelection",
+          "group": "localCodingAgent@1"
+        },
+        {
+          "command": "localCodingAgent.fixCode",
+          "when": "editorHasSelection",
+          "group": "localCodingAgent@2"
+        },
+        {
+          "command": "localCodingAgent.refactorCode",
+          "when": "editorHasSelection",
+          "group": "localCodingAgent@3"
+        },
+        {
+          "command": "localCodingAgent.generateDocs",
+          "when": "editorHasSelection",
+          "group": "localCodingAgent@4"
+        },
+        {
+          "command": "localCodingAgent.generateTests",
+          "when": "editorHasSelection",
+          "group": "localCodingAgent@5"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "localCodingAgent.newChat",
+          "when": "view == localCodingAgent.chatView",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Local Coding Agent",
+      "properties": {
+        "localCodingAgent.ollamaUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Ollama server URL (e.g. http://localhost:11434)"
+        },
+        "localCodingAgent.model": {
+          "type": "string",
+          "default": "codellama",
+          "description": "Ollama model to use (e.g. codellama, llama3.2, deepseek-coder, qwen2.5-coder)"
+        },
+        "localCodingAgent.systemPrompt": {
+          "type": "string",
+          "default": "You are an expert coding assistant. Help the user write, understand, debug, and improve code. When showing code, always use markdown code blocks with the appropriate language identifier. Be concise and practical.",
+          "description": "System prompt sent to the model on every request",
+          "editPresentation": "multilineText"
+        },
+        "localCodingAgent.contextLines": {
+          "type": "number",
+          "default": 50,
+          "minimum": 0,
+          "maximum": 500,
+          "description": "Number of surrounding lines to include as context when sending selected code"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile",
+    "package": "vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.0.0",
+    "typescript": "^5.3.0"
+  }
+}
